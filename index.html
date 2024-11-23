@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tell Me You Love Me!</title>
+  <style>
+    body {
+      background-color: pink;
+      font-family: "Comic Sans MS", sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #question {
+      font-size: 24px;
+      margin-top: 20px;
+    }
+
+    .button {
+      font-size: 18px;
+      padding: 10px;
+      margin: 10px;
+      cursor: pointer;
+      background-color: lightgreen;
+      border: none;
+      border-radius: 5px;
+      position: absolute;
+    }
+
+    .no-button {
+      background-color: red;
+      color: white;
+      width: 60px;
+      height: 30px;
+    }
+
+    .yes-button {
+      background-color: lightgreen;
+      width: 120px;
+      height: 60px;
+    }
+
+    .plenty-button {
+      background-color: red;
+      color: white;
+      width: 80px;
+      height: 40px;
+    }
+
+    .tell-button {
+      background-color: lightgreen;
+      width: 200px;
+      height: 60px;
+    }
+
+    .soon-button {
+      background-color: yellow;
+      color: red;
+      width: 100px;
+      height: 50px;
+    }
+
+    #confettiCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: none;
+    }
+
+    #timer {
+      font-size: 46px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="question">Do you love me?</div>
+  <button id="yesButton" class="button yes-button" style="left: 150px; top: 150px;">Yes</button>
+  <button id="noButton" class="button no-button" style="left: 300px; top: 150px;">No</button>
+  <button id="plentyButton" class="button plenty-button" style="display:none; left: 130px; top: 200px;">Plenty</button>
+  <button id="tellButton" class="button tell-button" style="display:none; left: 300px; top: 200px;">I will tell you in person</button>
+  <button id="soonButton" class="button soon-button" style="display:none; left: 250px; top: 200px;">Soon</button>
+
+  <div id="timer"></div>
+  <canvas id="confettiCanvas"></canvas>
+
+  <script>
+    // Confetti animation logic
+    function startConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.style.display = 'block'; // Show canvas
+
+      const confettiPieces = [];
+      for (let i = 0; i < 50; i++) {
+        confettiPieces.push({
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+          size: Math.random() * 10 + 5,
+          color: ["red", "blue", "yellow", "green", "purple", "orange"][Math.floor(Math.random() * 6)],
+          velocityX: Math.random() * 10 - 5,
+          velocityY: Math.random() * 10 - 5
+        });
+      }
+
+      function animateConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confettiPieces.forEach(function(piece) {
+          piece.x += piece.velocityX;
+          piece.y += piece.velocityY;
+          ctx.beginPath();
+          ctx.arc(piece.x, piece.y, piece.size, 0, Math.PI * 2);
+          ctx.fillStyle = piece.color;
+          ctx.fill();
+        });
+        requestAnimationFrame(animateConfetti);
+      }
+
+      animateConfetti();
+      setTimeout(() => canvas.style.display = 'none', 300); // Hide canvas after 300 milliseconds
+    }
+
+    // Handle button movement when hovering over "No"
+    const noButton = document.getElementById('noButton');
+    noButton.addEventListener('mouseenter', function(event) {
+      const buttonRect = noButton.getBoundingClientRect();
+      const mouseX = event.clientX;
+      const mouseY = event.clientY;
+      const distance = Math.sqrt(Math.pow(mouseX - (buttonRect.left + buttonRect.width / 2), 2) +
+                                Math.pow(mouseY - (buttonRect.top + buttonRect.height / 2), 2));
+      if (distance < 100) { // If mouse is close to button, move it
+        const newX = Math.random() * (window.innerWidth - buttonRect.width);
+        const newY = Math.random() * (window.innerHeight - buttonRect.height);
+        noButton.style.left = `${newX}px`;
+        noButton.style.top = `${newY}px`;
+      }
+    });
+
+    // Handle "Yes" button click to trigger confetti
+    document.getElementById('yesButton').addEventListener('click', function() {
+      startConfetti();
+      setTimeout(function() {
+        document.getElementById('question').innerText = 'How much?';
+        document.getElementById('tellButton').style.display = 'block';
+        document.getElementById('plentyButton').style.display = 'block';
+        document.getElementById('yesButton').style.display = 'none';
+        document.getElementById('noButton').style.display = 'none';
+      }, 300); // Change question after 300 milliseconds
+    });
+
+    // Handle "I will tell you in person" button click
+    document.getElementById('tellButton').addEventListener('click', function() {
+      document.getElementById('question').innerText = 'When in person?';
+      document.getElementById('tellButton').style.display = 'none';
+      document.getElementById('soonButton').style.display = 'block';
+    });
+
+    // Handle "Soon" button click to start the timer
+    document.getElementById('soonButton').addEventListener('click', function() {
+      document.getElementById('question').innerText = 'I will be waiting for you.\nPlease come soon. The time is ticking!';
+      startTimer(2400); // Start a 40-minute countdown timer
+    });
+
+    // Countdown timer function
+    function startTimer(seconds) {
+      const timerLabel = document.getElementById('timer');
+      const countdown = function() {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        timerLabel.innerText = `Timer: ${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        if (seconds > 0) {
+          seconds--;
+          setTimeout(countdown, 1000);
+        } else {
+          document.getElementById('question').innerText = "O oh! The time is up! You didn't want to meet me?";
+        }
+      };
+      countdown();
+    }
+  </script>
+
+</body>
+</html>
